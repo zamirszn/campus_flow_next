@@ -1,5 +1,6 @@
 """Text menu. input/output are injectable so the CLI can be tested."""
 from .reports import build_report, format_report
+from .notes import add_note, get_notes
 from .storage import DEFAULT_PATH, StorageError, load_tickets, save_tickets
 from .tickets import (
     CATEGORIES, URGENCIES, CampusFlowError, assign_ticket, create_ticket, get_ticket,
@@ -16,7 +17,9 @@ MENU = """
 6. Reopen ticket
 7. Work queue
 8. Report
-9. Exit"""
+9. Exit
+10. Add follow-up note
+11. View ticket notes"""
 
 
 def format_row(t):
@@ -88,8 +91,26 @@ def _report(tickets, ask, out):
     return False
 
 
+def _add_note(tickets, ask, out):
+    note = add_note(tickets, ask("Ticket ID: "), ask("Author: "), ask("Message: "))
+    out(f"Added note {note['note_id']}.")
+    return True
+
+
+def _view_notes(tickets, ask, out):
+    ticket_id = ask("Ticket ID: ")
+    notes = get_notes(tickets, ticket_id)
+    if not notes:
+        out(f"No notes for {ticket_id.strip().upper()}.")
+    else:
+        for note in notes:
+            out(f"{note['note_id']} | {note['author']} | {note['message']}")
+    return False
+
+
 HANDLERS = {"1": _create, "2": _list, "3": _view, "4": _assign,
-            "5": _status, "6": _reopen, "7": _queue, "8": _report}
+            "5": _status, "6": _reopen, "7": _queue, "8": _report,
+            "10": _add_note, "11": _view_notes}
 
 
 def run(path=DEFAULT_PATH, input_func=input, output_func=print):
@@ -110,7 +131,7 @@ def run(path=DEFAULT_PATH, input_func=input, output_func=print):
             return 0
         handler = HANDLERS.get(choice)
         if handler is None:
-            output_func("Please choose a number from 1 to 9.")
+            output_func("Please choose a valid menu option (1-11).")
             continue
         try:
             if handler(tickets, input_func, output_func):

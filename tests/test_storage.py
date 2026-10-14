@@ -25,6 +25,17 @@ class StorageTests(unittest.TestCase):
         save_tickets(tickets, self.path)
         self.assertEqual(load_tickets(self.path), tickets)
 
+
+    def test_round_trip_preserves_notes_and_next_note_id(self):
+        from campusflow.notes import add_note
+        tickets = []
+        create_ticket(tickets, "Wi-Fi", "Network", "high", 15)
+        add_note(tickets, "T001", "Ada", "Router rebooted")
+        save_tickets(tickets, self.path)
+        reloaded = load_tickets(self.path)
+        self.assertEqual(reloaded[0]["notes"][0]["note_id"], "N001")
+        self.assertEqual(add_note(reloaded, "T001", "Grace", "Checking switch" )["note_id"], "N002")
+
     def test_new_ticket_after_reload_has_unique_id(self):
         tickets = []
         create_ticket(tickets, "a", "Other", "low", 1)
@@ -104,7 +115,7 @@ class CliTests(unittest.TestCase):
 
     def test_invalid_menu_choice(self):
         code, text = self.drive(["x", "9"])
-        self.assertIn("Please choose a number from 1 to 9.", text)
+        self.assertIn("Please choose a valid menu option (1-11).", text)
 
 
 if __name__ == "__main__":

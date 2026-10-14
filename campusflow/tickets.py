@@ -13,7 +13,7 @@ PRIORITIES = ("critical", "high", "medium", "low")  # queue order
 STATUSES = ("open", "in_progress", "resolved")
 TICKET_FIELDS = (
     "id", "title", "category", "urgency",
-    "affected_users", "priority", "status", "assigned_to",
+    "affected_users", "priority", "status", "assigned_to", "notes",
 )
 ID_PATTERN = re.compile(r"^T(\d+)$")
 
@@ -120,6 +120,7 @@ def create_ticket(tickets, title, category, urgency, affected_users):
         "priority": calculate_priority(urgency, affected_users),
         "status": "open",
         "assigned_to": None,
+        "notes": [],
     }
     tickets.append(ticket)
     return ticket

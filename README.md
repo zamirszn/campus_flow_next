@@ -16,11 +16,11 @@ python -m unittest discover -s tests -v     # run the tests
 ```
 
 ## Menu
-1 Create | 2 List | 3 View | 4 Assign | 5 Change status | 6 Reopen | 7 Work queue | 8 Report | 9 Exit
+1 Create | 2 List | 3 View | 4 Assign | 5 Change status | 6 Reopen | 7 Work queue | 8 Report | 9 Exit | 10 Add follow-up note | 11 View ticket notes
 
 ## Rules
 **Ticket:** id (T001, T002, ...), title (not blank), category (Network/Hardware/Software/Other),
-urgency (low/medium/high), affected_users (positive whole number), priority, status, assigned_to.
+urgency (low/medium/high), affected_users (positive whole number), priority, status, assigned_to, notes (a list of note dictionaries). Each note has note_id (N001, N002, ... per ticket), author and message. Notes require an open or in_progress ticket; author is trimmed and nonblank; message is trimmed to 5-300 characters. Notes remain through resolve/reopen.
 Case variations such as `network` or `HIGH` are accepted and normalised.
 
 **Priority (first match wins):**
@@ -43,7 +43,7 @@ with a clear error and is never overwritten.
 ## Tests
 `tests/test_tickets.py` priority rules and boundaries, validation, ID generation, assignment.
 `tests/test_workflow.py` lifecycle, reopen, queue ordering, reports (incl. zero tickets).
-`tests/test_storage.py` JSON round-trip, unique IDs after reload, corrupted files, CLI session.
+`tests/test_storage.py` JSON round-trip, unique IDs after reload, corrupted files, CLI session. `tests/test_notes.py` note validation, lifecycle, ordering, and state integrity.
 
 ## Known limitations
 - Single user, no locking: two instances writing the same file can overwrite each other.
