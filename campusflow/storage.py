@@ -4,8 +4,9 @@ import os
 import re
 
 from .tickets import (
-    CATEGORIES, PRIORITIES, STATUSES, TICKET_FIELDS, URGENCIES, CampusFlowError,
+    CATEGORIES, PRIORITIES, STATUSES, TICKET_FIELDS, URGENCIES, CampusFlowError, calculate_priority,
 )
+from .notes import next_note_id
 
 DEFAULT_PATH = os.path.join("data", "tickets.json")
 _ID = re.compile(r"^T\d+$")
@@ -23,7 +24,8 @@ def validate_tickets(data):
         where = f"Ticket #{index} in file"
         if not isinstance(ticket, dict):
             raise StorageError(f"{where} is not an object.")
-        missing = [f for f in TICKET_FIELDS if f not in ticket]
+        legacy_fields = tuple(f for f in TICKET_FIELDS if f != "notes")
+        missing = [f for f in legacy_fields if f not in ticket]
         if missing:
             raise StorageError(f"{where} is missing fields: {', '.join(missing)}.")
         if not isinstance(ticket["id"], str) or not _ID.match(ticket["id"]):
@@ -31,6 +33,9 @@ def validate_tickets(data):
         if ticket["id"] in seen:
             raise StorageError(f"Duplicate ticket id {ticket['id']} in file.")
         seen.add(ticket["id"])
+        # Upgrade old records in memory; their original fields are preserved.
+        if "notes" not in ticket:
+            ticket["notes"] = []
         users = ticket["affected_users"]
         checks = [
             (isinstance(ticket["title"], str) and ticket["title"].strip(), "title"),
@@ -47,6 +52,12 @@ def validate_tickets(data):
         for ok, field in checks:
             if not ok:
                 raise StorageError(f"{where} ({ticket['id']}) has an invalid {field}.")
+        if ticket["priority"] != calculate_priority(ticket["urgency"], users):
+            raise StorageError(f"{where} ({ticket['id']}) has a priority inconsistent with urgency/users.")
+        try:
+            next_note_id(ticket)
+        except ValueError as exc:
+            raise StorageError(f"{where} ({ticket['id']}) has invalid notes: {exc}") from exc
 
 
 def load_tickets(path=DEFAULT_PATH):
