@@ -3,8 +3,10 @@ from .reports import build_report, format_report
 from .notes import add_note, get_notes
 from .storage import DEFAULT_PATH, StorageError, load_tickets, save_tickets
 from .tickets import (
-    CATEGORIES, URGENCIES, CampusFlowError, assign_ticket, create_ticket, get_ticket,
+    CATEGORIES, PRIORITIES, STATUSES, URGENCIES,
+    CampusFlowError, assign_ticket, create_ticket, get_ticket,
 )
+from .search import search_tickets, sort_by_priority_then_id
 from .workflow import change_status, reopen_ticket, work_queue
 
 MENU = """
@@ -19,7 +21,8 @@ MENU = """
 8. Report
 9. Exit
 10. Add follow-up note
-11. View ticket notes"""
+11. View ticket notes
+12. Search tickets"""
 
 
 def format_row(t):
@@ -108,9 +111,39 @@ def _view_notes(tickets, ask, out):
     return False
 
 
+def _ask_filter(ask, out, label, allowed):
+    """Prompt until the user gives a valid value or blank."""
+    while True:
+        raw = ask(f"{label} [{', '.join(allowed)}] (or blank): ").strip()
+        if raw == "":
+            return ""
+        for value in allowed:
+            if value.casefold() == raw.casefold():
+                return value
+        out(f"Invalid {label.lower()}. Allowed: {', '.join(allowed)}.")
+
+
+def _search(tickets, ask, out):
+    """Read-only search with optional combined filters."""
+    title_query = ask("Title contains (or blank): ").strip()
+    category = _ask_filter(ask, out, "Category", CATEGORIES)
+    status = _ask_filter(ask, out, "Status", STATUSES)
+    priority = _ask_filter(ask, out, "Priority", PRIORITIES)
+
+    results = search_tickets(tickets, title_query, category, status, priority)
+
+    if not results:
+        out("No tickets match your search.")
+        return False
+
+    out(f"Found {len(results)} matching ticket(s):")
+    print_rows(results, out)
+    return False
+
+
 HANDLERS = {"1": _create, "2": _list, "3": _view, "4": _assign,
             "5": _status, "6": _reopen, "7": _queue, "8": _report,
-            "10": _add_note, "11": _view_notes}
+            "10": _add_note, "11": _view_notes, "12": _search}
 
 
 def run(path=DEFAULT_PATH, input_func=input, output_func=print):
@@ -131,7 +164,7 @@ def run(path=DEFAULT_PATH, input_func=input, output_func=print):
             return 0
         handler = HANDLERS.get(choice)
         if handler is None:
-            output_func("Please choose a valid menu option (1-11).")
+            output_func("Please choose a valid menu option (1-12).")
             continue
         try:
             if handler(tickets, input_func, output_func):
