@@ -10,7 +10,7 @@ def search_tickets(tickets, title_query="", category="", status="", priority="")
     Args:
         tickets: list of ticket dicts.
         title_query: case-insensitive substring to search in titles.
-            Empty string means "do not filter by title."
+            Empty or whitespace-only means "do not filter by title."
         category: canonical category name, or empty for no filter.
         status: canonical status name, or empty for no filter.
         priority: canonical priority name, or empty for no filter.
@@ -22,9 +22,11 @@ def search_tickets(tickets, title_query="", category="", status="", priority="")
     Side effects:
         None. This function is read-only.
     """
+    title_query = title_query.strip() if isinstance(title_query, str) else ""
+    needle = title_query.casefold()
     results = []
     for ticket in tickets:
-        if title_query and title_query.casefold() not in ticket["title"].casefold():
+        if needle and needle not in ticket["title"].casefold():
             continue
         if category and ticket["category"] != category:
             continue

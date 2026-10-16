@@ -15,7 +15,7 @@ TICKET_FIELDS = (
     "id", "title", "category", "urgency",
     "affected_users", "priority", "status", "assigned_to", "notes",
 )
-ID_PATTERN = re.compile(r"^T(\d+)$")
+ID_PATTERN = re.compile(r"T([0-9]+)")
 
 
 class CampusFlowError(ValueError):
@@ -95,7 +95,7 @@ def calculate_priority(urgency, affected_users):
 
 # ------------------------------------------------------------------- tickets
 def ticket_number(ticket_id):
-    match = ID_PATTERN.match(ticket_id)
+    match = ID_PATTERN.fullmatch(ticket_id)
     return int(match.group(1)) if match else 0
 
 

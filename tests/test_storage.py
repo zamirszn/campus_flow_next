@@ -115,7 +115,7 @@ class CliTests(unittest.TestCase):
 
     def test_invalid_menu_choice(self):
         code, text = self.drive(["x", "9"])
-        self.assertIn("Please choose a valid menu option (1-11).", text)
+        self.assertIn("Please choose a valid menu option (1-14).", text)
 
 
 if __name__ == "__main__":

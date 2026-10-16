@@ -16,7 +16,22 @@ python -m unittest discover -s tests -v     # run the tests
 ```
 
 ## Menu
-1 Create | 2 List | 3 View | 4 Assign | 5 Change status | 6 Reopen | 7 Work queue | 8 Report | 9 Exit | 10 Add follow-up note | 11 View ticket notes
+1 Create | 2 List | 3 View | 4 Assign | 5 Change status | 6 Reopen | 7 Work queue | 8 Report | 9 Exit | 10 Add follow-up note | 11 View ticket notes | 12 Search tickets | 13 Search tickets (sorted by priority, then ID) | 14 Engineering understanding check
+
+## Search (menu 12 and 13)
+Read-only. Prompts for: title text, category, status, priority. A blank answer means "do not
+filter by that field"; an invalid category/status/priority re-prompts. Title matching is a
+case-insensitive substring match (`casefold`), and a whitespace-only title counts as blank.
+Every supplied filter must match (AND). Results show ID, priority, status, category, assignee
+and title. Option 13 shows the same results sorted by priority, then numeric ticket ID. The
+original Work Queue (menu 7) is unchanged and still shows only `open` tickets.
+
+## Engineering Understanding Check (menu 14)
+Six A/B/C/D scenario questions about this app's behaviour (invalid answers re-prompt). One point
+per correct first answer, final score 0-6. You then choose two questions and explain your
+answers in your own words; explanations are not auto-graded. They are appended to
+`data/learning_note.md` (next to the data file, git-ignored) for mentor discussion.
+Questions live in `campusflow/question_bank.py`; scoring is in `campusflow/understanding_check.py`.
 
 ## Rules
 **Ticket:** id (T001, T002, ...), title (not blank), category (Network/Hardware/Software/Other),
@@ -36,6 +51,16 @@ A resolved ticket can only be changed after an explicit Reopen (resolved -> open
 ties broken by the lower numeric ID.
 
 ## Storage
+**File format:** a plain JSON list of ticket objects (no envelope or version field), each with
+`id, title, category, urgency, affected_users, priority, status, assigned_to, notes`. `notes` is a
+list of `{note_id, author, message}`. Files from the original version (no `notes` key) still load;
+their tickets get `notes: []` in memory and are upgraded on the next save, so no migration is needed.
+On load the whole file is validated before anything is used: list structure, required keys, unique
+and well-formed IDs (`T` + digits only), category/urgency/status values, `affected_users` (positive
+int, not bool), priority consistent with urgency and users, in_progress/resolved tickets having an
+assignee, and note shape/ID uniqueness. One bad record rejects the whole load; the app does not
+start with partial data and the file is never overwritten.
+
 Tickets are saved to `data/tickets.json` after every change (git-ignored). Delete the file
 to start fresh. A missing file means a fresh start; a malformed or invalid file stops the app
 with a clear error and is never overwritten.
@@ -43,10 +68,10 @@ with a clear error and is never overwritten.
 ## Tests
 `tests/test_tickets.py` priority rules and boundaries, validation, ID generation, assignment.
 `tests/test_workflow.py` lifecycle, reopen, queue ordering, reports (incl. zero tickets).
-`tests/test_storage.py` JSON round-trip, unique IDs after reload, corrupted files, CLI session. `tests/test_notes.py` note validation, lifecycle, ordering, and state integrity.
+`tests/test_storage.py` JSON round-trip, unique IDs after reload, corrupted files, CLI session. `tests/test_notes.py` note validation, lifecycle, ordering, and state integrity. `tests/test_search.py` search logic. `tests/test_cli_search.py` search menus via scripted input. `tests/test_understanding.py` question bank, scoring, retry, explanations. `tests/test_bug_hunter.py` extra edge cases (see `docs/bug-hunter-report.md`). `tests/helpers.py` shared fixtures.
 
 ## Known limitations
 - Single user, no locking: two instances writing the same file can overwrite each other.
-- The queue shows `open` tickets only; `in_progress` tickets are not listed in it.
+- The Work Queue (menu 7) shows `open` tickets only; use search (menu 12/13) with status `in_progress` to find work in progress.
 - No editing of title/category/urgency after creation; no deleting tickets.
 - Text interface only.
