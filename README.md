@@ -4,8 +4,8 @@ A command-line helpdesk for Learn2Earn campus staff. It records support problems
 (Wi-Fi outages, faulty laptops, ...), calculates priority, assigns work, tracks
 status, shows a work queue and reports, and saves everything to JSON.
 
-**Team:** Engineer A: <name> (creation, validation, priority engine) | Engineer B: <name> (assignment, lifecycle, queue, reports)
-**Reviewed PRs:** <link to A's PR> | <link to B's PR>
+**Team:** Engineer A: Mubarak Lawal (creation, validation, priority engine) | Engineer B: John Serah (assignment, lifecycle, queue, reports)
+**Reviewed PRs:** [A: notes data layer #3](https://github.com/zamirszn/campus_flow_next/pull/3) | [B: search_tickets #6](https://github.com/zamirszn/campus_flow_next/pull/6), [reports #7](https://github.com/zamirszn/campus_flow_next/pull/7), [search CLI #9](https://github.com/zamirszn/campus_flow_next/pull/9)
 
 ## Setup
 Python 3.9+ and the standard library only. No installs needed.
