@@ -88,8 +88,63 @@ least ONE cycle where an AI suggestion was changed or rejected after evidence re
   produces (`" "`) rather than the input that is convenient to type in a test. I can explain this
   without AI.
 
-## Engineer B
-### Cycle 1
-<TODO>
-### Cycle 2
-<TODO>
+## Engineer B: John Serah
+
+> The AI-session fields in both cycles below are **not filled in**. They must come from Engineer B's
+> own session; writing them from the diffs would put a fabricated record in the log. The two cycle
+> topics are the candidates her commits and PRs actually support — confirm or replace them. The
+> evidence for each is already recorded, and the fix in both cases landed in `e3fa1bd` (Engineer A's
+> bug-hunt commit), not inside her own PRs, so the cycles must be written with that stated.
+
+### Cycle 1 — guarding a computed rate against an empty dataset (PR #7)
+
+_Candidate topic — confirm or replace._
+
+- **Concept gap:** `build_report` computes the resolution rate as `resolved / total * 100`, which
+  raises `ZeroDivisionError` when the ticket list is empty — the state a fresh install starts in.
+  Worth writing up: where the guard belongs (in the calculation or at the point of display) and what
+  an empty dataset should report instead of a number.
+- **Exact question I asked AI:** _<pending — Engineer B's session>_
+- **Summary of AI guidance:** _<pending — Engineer B's session>_
+- **Tiny unrelated experiment I ran:** _<pending — Engineer B's session>_
+- **Independent verification (test / docs):** `tests/test_reports.py` pins both the number and the
+  rendering — `test_empty_report`, `test_resolution_rate`, `test_unresolved_is_open_plus_in_progress`,
+  `test_reopened_counts_as_current_status` and `test_empty_report_formats_without_crash`. Run
+  `python -m unittest tests.test_reports -v`.
+- **Final engineering decision (as merged in PR #7):** `rate = (resolved / total * 100) if total
+  else 0.0`, so an empty dataset reports `0.0%` instead of crashing, rendered as
+  `{report['resolution_rate']:.1f}%`. The same change added `by_category` counts, `unresolved`
+  (open + in_progress) and `resolved` to the report.
+- **Reflection:** _<pending — Engineer B: what did you believe before, what did you test, what did
+  you change in your code, and which test guards it?>_
+
+### Cycle 2 — "blank means no filter" in `search_tickets` (PR #6)
+
+_Candidate topic — confirm or replace._
+
+- **Concept gap:** `search_tickets` documented `title_query: ... Empty string means "do not filter by
+  title."`, but its body used the raw value, so a whitespace-only query was matched as a literal
+  substring. Menu 12 (PR #9) called `.strip()` before calling the function, so the menu never showed
+  the defect: the gap is between a function's documented contract and the behaviour of its only
+  current caller.
+- **Exact question I asked AI:** _<pending — Engineer B's session>_
+- **Summary of AI guidance:** _<pending — Engineer B's session>_
+- **Tiny unrelated experiment I ran:** _<pending — Engineer B's session>_
+- **Independent verification (test / docs):** `tests/test_search.py` already contained
+  `test_whitespace_query_is_treated_as_no_filter`, but it passes `""`, so it stayed green while the
+  function was wrong. The real cases are in the bug-hunt suite:
+  `test_whitespace_only_query_means_no_title_filter` (`AssertionError: 0 != 2`) and
+  `test_query_with_surrounding_spaces_still_matches`, both failing at `26a0c9b`. Hand test at that
+  commit: `search_tickets(tickets, "   ")` returned `[]` and `"  wi-fi "` returned `[]`, while the
+  same whitespace input through menu 12 returned the ticket.
+- **Final engineering decision (as merged in `e3fa1bd`, by Engineer A's bug-hunt — not inside
+  PR #6):** normalise at the function's own boundary —
+  `title_query = title_query.strip() if isinstance(title_query, str) else ""` — and update the
+  docstring to "Empty or whitespace-only means 'do not filter by title.'" The CLI keeps its
+  `.strip()` as a second line of defence. If this cycle is claimed, record how you checked and
+  accepted the fix rather than that you wrote it.
+- **Reflection:** _<pending — Engineer B: what did you believe before, what did you test, what did
+  you change, and which test guards it?>_
+
+_Provenance note: `campusflow/search.py` entered `main` through PR #6; the identical file content
+was also submitted in PR #5, which was closed unmerged._
