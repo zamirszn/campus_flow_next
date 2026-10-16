@@ -31,7 +31,15 @@ Each engineer: one verified mistake, one learning gain, one improvement from cod
   "empty string means no filter" and her CLI satisfied that by stripping, so I called the function
   directly, found the API-level gap, and fixed it with two tests of my own.
 
-## Engineer B: <full name>
-- **Verified mistake:** <TODO>
-- **Learning gain:** <TODO>
-- **Improvement from review:** <TODO>
+## Engineer B: John Serah
+- **Verified mistake:** PR #9 added menu option 12 (`Search tickets`) and changed the invalid-option
+  message in `campusflow/cli.py` from `(1-11)` to `(1-12)`, but did not update
+  `tests/test_storage.py::CliTests.test_invalid_menu_choice`, which asserted the old `(1-11)`
+  string. The suite was therefore red at that merge commit `26a0c9b` — measured: 71 tests, 1
+  failure — and `cli.py` was right, so the stale assertion was what got updated in `e3fa1bd`. The
+  same module carried a second defect: `search_tickets` documented "empty string means no filter"
+  but treated a whitespace-only query as a literal substring, so `"   "` filtered everything out and
+  `"  wi-fi "` matched nothing. Both cases fail at `26a0c9b` with `AssertionError: 0 != 2` and pass
+  at `e3fa1bd`.
+- **Learning gain:** _<pending — Engineer B>_
+- **Improvement from review:** _<pending — Engineer B>_
