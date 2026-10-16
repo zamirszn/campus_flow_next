@@ -9,7 +9,7 @@ from .tickets import (
 from .notes import next_note_id
 
 DEFAULT_PATH = os.path.join("data", "tickets.json")
-_ID = re.compile(r"^T\d+$")
+_ID = re.compile(r"T[0-9]+")
 
 
 class StorageError(CampusFlowError):
@@ -28,7 +28,7 @@ def validate_tickets(data):
         missing = [f for f in legacy_fields if f not in ticket]
         if missing:
             raise StorageError(f"{where} is missing fields: {', '.join(missing)}.")
-        if not isinstance(ticket["id"], str) or not _ID.match(ticket["id"]):
+        if not isinstance(ticket["id"], str) or not _ID.fullmatch(ticket["id"]):
             raise StorageError(f"{where} has an invalid id.")
         if ticket["id"] in seen:
             raise StorageError(f"Duplicate ticket id {ticket['id']} in file.")
@@ -52,6 +52,10 @@ def validate_tickets(data):
         for ok, field in checks:
             if not ok:
                 raise StorageError(f"{where} ({ticket['id']}) has an invalid {field}.")
+        if ticket["status"] in ("in_progress", "resolved") and not ticket["assigned_to"]:
+            raise StorageError(
+                f"{where} ({ticket['id']}) is {ticket['status']} but has no assignee."
+            )
         if ticket["priority"] != calculate_priority(ticket["urgency"], users):
             raise StorageError(f"{where} ({ticket['id']}) has a priority inconsistent with urgency/users.")
         try:

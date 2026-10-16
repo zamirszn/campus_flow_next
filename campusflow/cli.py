@@ -1,6 +1,10 @@
 """Text menu. input/output are injectable so the CLI can be tested."""
+import os
+from functools import partial
+
 from .reports import build_report, format_report
 from .notes import add_note, get_notes
+from .understanding_check import DEFAULT_NOTE_PATH, run_check
 from .storage import DEFAULT_PATH, StorageError, load_tickets, save_tickets
 from .tickets import (
     CATEGORIES, PRIORITIES, STATUSES, URGENCIES,
@@ -22,7 +26,9 @@ MENU = """
 9. Exit
 10. Add follow-up note
 11. View ticket notes
-12. Search tickets"""
+12. Search tickets
+13. Search tickets (sorted by priority, then ID)
+14. Engineering understanding check"""
 
 
 def format_row(t):
@@ -123,7 +129,7 @@ def _ask_filter(ask, out, label, allowed):
         out(f"Invalid {label.lower()}. Allowed: {', '.join(allowed)}.")
 
 
-def _search(tickets, ask, out):
+def _run_search(tickets, ask, out, sort_results):
     """Read-only search with optional combined filters."""
     title_query = ask("Title contains (or blank): ").strip()
     category = _ask_filter(ask, out, "Category", CATEGORIES)
@@ -131,6 +137,8 @@ def _search(tickets, ask, out):
     priority = _ask_filter(ask, out, "Priority", PRIORITIES)
 
     results = search_tickets(tickets, title_query, category, status, priority)
+    if sort_results:
+        results = sort_by_priority_then_id(results)
 
     if not results:
         out("No tickets match your search.")
@@ -141,9 +149,23 @@ def _search(tickets, ask, out):
     return False
 
 
+def _search(tickets, ask, out):
+    return _run_search(tickets, ask, out, sort_results=False)
+
+
+def _search_sorted(tickets, ask, out):
+    return _run_search(tickets, ask, out, sort_results=True)
+
+
+def _understanding_check(tickets, ask, out, note_path=DEFAULT_NOTE_PATH):
+    run_check(ask, out, note_path=note_path)
+    return False
+
+
 HANDLERS = {"1": _create, "2": _list, "3": _view, "4": _assign,
             "5": _status, "6": _reopen, "7": _queue, "8": _report,
-            "10": _add_note, "11": _view_notes, "12": _search}
+            "10": _add_note, "11": _view_notes, "12": _search,
+            "13": _search_sorted, "14": _understanding_check}
 
 
 def run(path=DEFAULT_PATH, input_func=input, output_func=print):
@@ -153,6 +175,9 @@ def run(path=DEFAULT_PATH, input_func=input, output_func=print):
     except StorageError as exc:
         output_func(f"Error: {exc}")
         return 1
+    handlers = dict(HANDLERS)
+    note_path = os.path.join(os.path.dirname(path), "learning_note.md")
+    handlers["14"] = partial(_understanding_check, note_path=note_path)
     while True:
         output_func(MENU)
         try:
@@ -162,9 +187,9 @@ def run(path=DEFAULT_PATH, input_func=input, output_func=print):
         if choice == "9":
             output_func("Goodbye.")
             return 0
-        handler = HANDLERS.get(choice)
+        handler = handlers.get(choice)
         if handler is None:
-            output_func("Please choose a valid menu option (1-12).")
+            output_func("Please choose a valid menu option (1-14).")
             continue
         try:
             if handler(tickets, input_func, output_func):

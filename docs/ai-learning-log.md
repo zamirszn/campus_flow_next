@@ -1,21 +1,25 @@
 # AI learning log
 
-Each fellow records at least THREE real interactions, one of which shows an AI suggestion
-you checked and corrected, improved or rejected. Only write what actually happened.
+Only write what actually happened. Each engineer needs at least TWO cycles; the team needs at
+least ONE cycle where an AI suggestion was changed or rejected after evidence review.
 
-## Entry template
-**Fellow / date:**
-**Topic:**
-**What I understood / what confused me:**
-**What I asked AI:**
-**My prediction and experiment:**
-**How I verified it (output, test, official docs):**
-**AI advice I accepted / changed / rejected and why:**
-**Related file/commit/PR:**
-**What I can now explain without AI:**
+## Cycle template
+- **Concept gap:**
+- **Exact question I asked AI:**
+- **Summary of AI guidance:**
+- **Tiny unrelated experiment I ran:**
+- **Independent verification (test / docs):**
+- **Final engineering decision:**
+- **Reflection:** What did I believe before? What did AI explain? Which claim did I test? What did the test show? What did I change in MY code? Which test guards it? Could I explain it without AI?
 
 ## Engineer A
-(entries here)
+### Cycle 1
+<TODO>
+### Cycle 2
+<TODO>
 
 ## Engineer B
-(entries here)
+### Cycle 1
+<TODO>
+### Cycle 2
+<TODO>
