@@ -20,9 +20,9 @@ least ONE cycle where an AI suggestion was changed or rejected after evidence re
   were both `re.compile(r"^T(\d+)$")`, used with `.match()`. I could not explain why a
   hand-edited `data/tickets.json` containing `"id": "T001\n"` was accepted as valid — I read `$`
   as "the string must end here, with nothing after the last digit".
-- **Exact question I asked AI:** <!-- PENDING: Mubarak to paste verbatim -->
-- **Summary of AI guidance:** <!-- PENDING: Mubarak to paste verbatim -->
-- **Tiny unrelated experiment I ran:** <!-- PENDING: Mubarak to paste verbatim -->
+- **Exact question I asked AI:** _<pending — to be recorded from the AI session>_
+- **Summary of AI guidance:** _<pending — to be recorded from the AI session>_
+- **Tiny unrelated experiment I ran:** _<pending — to be recorded from the AI session>_
 - **Independent verification (test / docs):** The `re` documentation defines `$` as matching "at
   the end of the string or just before the newline at the end of the string", which is exactly the
   hole; `re.fullmatch` and `\Z` carry no such exception. `tests/test_bug_hunter.py::BugHunterForStorage::test_id_with_trailing_newline_is_rejected_on_load`
@@ -56,9 +56,9 @@ least ONE cycle where an AI suggestion was changed or rejected after evidence re
   explain where "blank means no filter" was supposed to be enforced — the menu strips with
   `.strip()` before calling, so blank looked handled, yet the function's own contract only held for
   the exact empty string.
-- **Exact question I asked AI:** <!-- PENDING: Mubarak to paste verbatim -->
-- **Summary of AI guidance:** <!-- PENDING: Mubarak to paste verbatim -->
-- **Tiny unrelated experiment I ran:** <!-- PENDING: Mubarak to paste verbatim -->
+- **Exact question I asked AI:** _<pending — to be recorded from the AI session>_
+- **Summary of AI guidance:** _<pending — to be recorded from the AI session>_
+- **Tiny unrelated experiment I ran:** _<pending — to be recorded from the AI session>_
 - **Independent verification (test / docs):** `tests/test_search.py` already contained
   `test_whitespace_query_is_treated_as_no_filter`, but it passes `""` — it covers the input I had
   in mind, not whitespace, which is why it stayed green while the function was wrong. The two new
